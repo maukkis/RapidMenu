@@ -9,7 +9,7 @@
 #include <iostream>
 #include <limits>
 #include <stdexcept>
-#include <string>
+#include "includes/dirs.h"
 
 void clearBuffer() {
   std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
@@ -58,9 +58,9 @@ void from_toml(const cpptoml::table &t, Action &a) {
 int main(int argc, char **argv, char **envp) {
 
   const char *userHome = getenv("HOME");
-
-  std::string rapidMenuPath = std::string(userHome) + "/.config/RapidMenu";
-  std::string rapidcommand = "mkdir -p " + rapidMenuPath;
+  //why were these std::strings?
+  const char rapidMenuPath[] {std::string(userHome) + "/.config/RapidMenu"};
+  const char rapidcommand[] {"mkdir -p " + rapidMenuPath};
 
   std::vector<std::string> ARGS{argv, argv + argc};
   for (int i = 0; i < argc; ++i) {
@@ -94,9 +94,10 @@ int main(int argc, char **argv, char **envp) {
             std::cerr << USAGE.c_str();
             return 1;
         }
-        const char *configFile = nullptr;
+        const char *configFile = argv[2];
 
-        configFile = argv[2];
+        //why was this here?
+        //configFile = argv[2];
 
         try {
           auto config = cpptoml::parse_file(configFile);
@@ -108,7 +109,7 @@ int main(int argc, char **argv, char **envp) {
           for (const auto &tableItem : *config) {
             try {
               Action a;
-              from_toml(*tableItem.second->as_table(), a);
+              from_toml(tableItem.second->as_table(), a);
 
               reversedNamesList.push_back(a.names);
 
@@ -192,7 +193,7 @@ int main(int argc, char **argv, char **envp) {
         std::string bexeout;
         std::string byn;
         std::string bconfigin = argv[2];
-        std::string bindir = std::string(userHome) + "/.local/bin";
+       /* std::string bindir = std::string(userHome) + "/.local/bin";
         std::string createbindir = "mkdir -p " + bindir;
 
         if (std::filesystem::exists(bindir) &&
@@ -201,11 +202,14 @@ int main(int argc, char **argv, char **envp) {
           system(createbindir.c_str());
           std::cerr << "Setting up bin dir.";
           return 1;
-        }
+        }*/
+      
+       createBinDir(userHome);
 
         // config
-        std::string bconfigfile = bconfigin;
-        if (std::filesystem::exists(bconfigfile) &&
+        getConfigAndCheck(bconfigin);
+       // std::string bconfigfile = bconfigin;
+        /*if (std::filesystem::exists(bconfigfile) &&
             std::filesystem::is_regular_file(bconfigfile)) {
           bconfig = argv[2];
 
@@ -219,7 +223,7 @@ int main(int argc, char **argv, char **envp) {
             clearBuffer(); // clear extra input if entered
             bconfig = bconfigfile.c_str();
           }
-        }
+        }*/
 
         // executable
         std::cout << "What do you want to call your executable?: ";
